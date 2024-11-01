@@ -26,7 +26,6 @@ export class ProductsService {
       return product
       
     } catch (error) {
-      console.log("sd")
       this.handleDbExceptions(error)
     }
   }
