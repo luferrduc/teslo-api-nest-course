@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationDto } from '@/common/dtos/pagination.dto';
@@ -14,8 +14,11 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+
     @InjectRepository(ProductImage)
-    private readonly productImageRepository: Repository<ProductImage>
+    private readonly productImageRepository: Repository<ProductImage>,
+    
+    private readonly dataSource: DataSource
   ){} 
 
   async create(createProductDto: CreateProductDto) {
@@ -84,19 +87,54 @@ export class ProductsService {
 
   async update(id: string, updateProductDto: UpdateProductDto) {
     
+    const { images, ...toUpdate } = updateProductDto
+
     // Lo prepara para la actualización (no actualiza directamente)
     const product = await this.productRepository.preload({
       id,
-      ...updateProductDto,
-      images: []
+      ...toUpdate
     })
 
     if(!product) 
       throw new NotFoundException(`Product with id '${id}' not found`)
+
+    // Create query runner para realizar transacción
+    // Requiere usar el commit explicitamente para guardar los cambios
+    const queryRunner = this.dataSource.createQueryRunner(); 
+
+    // Conectar a la BD
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    //* Todo lo que hagamos después de aquí con el queryRunner, serán parte de la transacción
+
+
     try {
-      await this.productRepository.save(product)
-      return product;
+
+      if( images ){
+        // Se puede hacer de otras formas como por ejemplo
+        //* await this.productRepository.delete(...) ...
+        await queryRunner.manager.delete( ProductImage, {
+          product: { id }
+        })
+
+        product.images = images.map( 
+          image => this.productImageRepository.create({ url: image })
+        ) 
+      } else {
+        // TODO
+      }
+
+      await queryRunner.manager.save(product)
+
+      // await this.productRepository.save(product)
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return this.findOnePlain(id);
+
     } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       this.handleDbExceptions(error)
     }
   }
@@ -104,6 +142,13 @@ export class ProductsService {
   async remove(id: string) {
     const product = await this.findOne(id)
     // await this.productRepository.delete(id) -> otra forma
+
+    // Para eliminar un producto que tiene imagenes
+    // se puede hacer iniciando una transacción, eliminar las
+    // imagenes que están ligadas al producto y luego
+    // eliminar el producto
+    // También se puede eliminar el producto, haciendo
+    // una eliminación en cascada (Cascade)    
     await this.productRepository.remove(product)
     return;
   }
@@ -114,5 +159,16 @@ export class ProductsService {
     if(error.code === '23505')
       throw new BadRequestException(error.detail)
     throw new InternalServerErrorException('Unexpected error, check server logs')
+  }
+
+  async deleteAllProducts() {
+    const query = this.productRepository.createQueryBuilder('product')
+    try {
+      return await query.delete()
+                .where({})
+                .execute()
+    } catch (error) {
+      this.handleDbExceptions(error)
+    }
   }
 }
