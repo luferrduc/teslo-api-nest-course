@@ -12,6 +12,12 @@ import { Product, ProductImage } from './entities'
       Product,
       ProductImage
     ])
+  ],
+  exports: [
+    ProductsService,
+    // Si quiero que otro móodulo o servicio
+    // tenga acceso y pueda ocupar las entidades de Product
+    TypeOrmModule
   ]
 })
 export class ProductsModule {}
