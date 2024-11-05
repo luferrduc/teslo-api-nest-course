@@ -8,9 +8,8 @@ export class FilesService {
 
   getStaticProductImage(imageName: string){
 
-    console.log(__dirname)
     const path = join(__dirname,'../../static/products', imageName);
-    if(existsSync(path)){
+    if(!existsSync(path)){
       throw new BadRequestException(`No product found with image ${imageName}`);
     }
 
