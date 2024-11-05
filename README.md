@@ -19,7 +19,7 @@ docker compose up -d
 ```
 http://localhost:3000/api/seed
 ```
-8. Levantar en modo desarrollo
+7. Levantar en modo desarrollo
 ```bash
 yarn start:dev
 ```
