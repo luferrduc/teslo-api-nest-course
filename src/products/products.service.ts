@@ -6,6 +6,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { Product, ProductImage } from './entities';
 import { validate as isUUID } from 'uuid'
+import { PostgresExceptionHandler } from '@/common/exceptions/db-handler.exceptions';
 @Injectable()
 export class ProductsService {
 
@@ -18,7 +19,9 @@ export class ProductsService {
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
     
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+
+    private readonly postgresExceptionHandler: PostgresExceptionHandler
   ){} 
 
   async create(createProductDto: CreateProductDto) {
@@ -35,7 +38,7 @@ export class ProductsService {
       return { ...product, images }
       
     } catch (error) {
-      this.handleDbExceptions(error)
+      this.postgresExceptionHandler.handlerDBExceptions(error)
     }
   }
 
@@ -135,7 +138,7 @@ export class ProductsService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
-      this.handleDbExceptions(error)
+      this.postgresExceptionHandler.handlerDBExceptions(error)
     }
   }
 
@@ -154,12 +157,12 @@ export class ProductsService {
   }
 
 
-  private handleDbExceptions(error: any){
-    this.logger.error(error)
-    if(error.code === '23505')
-      throw new BadRequestException(error.detail)
-    throw new InternalServerErrorException('Unexpected error, check server logs')
-  }
+  // private handleDbExceptions(error: any){
+  //   this.logger.error(error)
+  //   if(error.code === '23505')
+  //     throw new BadRequestException(error.detail)
+  //   throw new InternalServerErrorException('Unexpected error, check server logs')
+  // }
 
   async deleteAllProducts() {
     const query = this.productRepository.createQueryBuilder('product')
@@ -168,7 +171,7 @@ export class ProductsService {
                 .where({})
                 .execute()
     } catch (error) {
-      this.handleDbExceptions(error)
+      this.postgresExceptionHandler.handlerDBExceptions(error)
     }
   }
 }

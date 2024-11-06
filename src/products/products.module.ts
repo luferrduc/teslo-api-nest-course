@@ -3,10 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product, ProductImage } from './entities'
+import { PostgresExceptionHandler } from '@/common/exceptions/db-handler.exceptions';
 
 @Module({
   controllers: [ProductsController],
-  providers: [ProductsService],
+  providers: [ProductsService, PostgresExceptionHandler],
   imports: [
     TypeOrmModule.forFeature([
       Product,
