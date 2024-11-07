@@ -37,7 +37,8 @@ export class AuthService {
       // TODO: retornar JWT
       return {
         ...user,
-        token: this.getJwtToken({ email: user.email })
+        // token: this.getJwtToken({ email: user.email })
+        token: this.getJwtToken({ id: user.id })
       };
   
     } catch (error) {
@@ -52,7 +53,8 @@ export class AuthService {
       where: { email },
       select: {
         email: true,
-        password: true
+        password: true,
+        id: true
       }
     })
 
@@ -66,13 +68,12 @@ export class AuthService {
     // TODO: retornar JWT
     return {
       ...user,
-      token: this.getJwtToken({ email: user.email })
+      token: this.getJwtToken({ id: user.id })
     };
 
   }
 
   private getJwtToken (payload: JwtPayload) {
-
     const token = this.jwtService.sign(payload);
     return token
 

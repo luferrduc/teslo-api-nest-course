@@ -1,7 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpCode, UseGuards, Req, Headers } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { CreateUserDto, LoginUserDto } from "./dto/";
 import { AuthService } from './auth.service';
-import { CreateUserDto } from "./dto/create-user.dto";
-import { LoginUserDto } from './dto/login-user.dto';
+import { GetUser } from './decorators/get-user.decorator';
+import { User } from './entities/user.entity';
+import { RawHeaders } from './decorators/raw-header.decorator';
+import { IncomingHttpHeaders } from 'http';
 
 @Controller('auth')
 export class AuthController {
@@ -16,5 +20,25 @@ export class AuthController {
   @Post('login')
   loginUser(@Body() loginUserDto: LoginUserDto){
     return this.authService.login(loginUserDto)
+  }
+
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testingPrivateRoute(
+    @Req() request: Express.Request,
+    @GetUser() user: User,
+    @GetUser('email') userEmail: string,
+    @RawHeaders() rawHeaders: string[],
+    @Headers() headers: IncomingHttpHeaders
+  ) {
+
+    return {
+      ok: true,
+      message: 'Ruta PRIVADA',
+      user,
+      userEmail,
+      rawHeaders,
+      headers
+    }
   }
 }
