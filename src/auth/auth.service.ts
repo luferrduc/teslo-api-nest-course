@@ -6,6 +6,8 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { PostgresExceptionHandler } from '@/common/exceptions/db-handler.exceptions';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 
 @Injectable()
@@ -15,7 +17,9 @@ export class AuthService {
     @InjectRepository(User) 
     private readonly userRepository: Repository<User>,
     
-    private readonly postgresExceptionHandler: PostgresExceptionHandler
+    private readonly postgresExceptionHandler: PostgresExceptionHandler,
+
+    private readonly jwtService: JwtService
   ){}
 
   async create(createUserDto: CreateUserDto) {
@@ -31,7 +35,11 @@ export class AuthService {
       
       delete user.password
       // TODO: retornar JWT
-      return user
+      return {
+        ...user,
+        token: this.getJwtToken({ email: user.email })
+      };
+  
     } catch (error) {
       this.postgresExceptionHandler.handlerDBExceptions(error)
     }
@@ -56,7 +64,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials')
 
     // TODO: retornar JWT
-    return 'logged in';
+    return {
+      ...user,
+      token: this.getJwtToken({ email: user.email })
+    };
+
+  }
+
+  private getJwtToken (payload: JwtPayload) {
+
+    const token = this.jwtService.sign(payload);
+    return token
 
   }
 
