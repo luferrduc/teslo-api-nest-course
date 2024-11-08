@@ -58,7 +58,7 @@ export class AuthController {
   }
 
   @Get('private3')
-  @RoleProtected(ValidRoles.admin, ValidRoles.superUser)
+  // @RoleProtected(ValidRoles.admin, ValidRoles.superUser) --> Forma con el ENUM
   @UseGuards(AuthGuard(), UserRoleGuard)
   privateRoute3(
     @GetUser() user: User
@@ -73,7 +73,8 @@ export class AuthController {
 
   @Get('private4')
   // @Auth() // Para cualquiera
-  @Auth(ValidRoles.admin)
+  // @Auth(ValidRoles.admin) --> Forma con el ENUM
+  @Auth('admin', 'super-user')
   privateRoute4(
     @GetUser() user: User
   ){

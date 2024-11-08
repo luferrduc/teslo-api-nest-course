@@ -4,6 +4,7 @@ import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product, ProductImage } from './entities'
 import { PostgresExceptionHandler } from '@/common/exceptions/db-handler.exceptions';
+import { AuthModule } from '@/auth/auth.module';
 
 @Module({
   controllers: [ProductsController],
@@ -12,7 +13,8 @@ import { PostgresExceptionHandler } from '@/common/exceptions/db-handler.excepti
     TypeOrmModule.forFeature([
       Product,
       ProductImage
-    ])
+    ]),
+    AuthModule
   ],
   exports: [
     ProductsService,
