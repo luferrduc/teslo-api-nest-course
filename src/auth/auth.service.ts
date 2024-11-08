@@ -1,13 +1,12 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt'
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
+import { CreateUserDto, LoginUserDto} from './dto';
 import { PostgresExceptionHandler } from '@/common/exceptions/db-handler.exceptions';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { JwtService } from '@nestjs/jwt';
 
 
 @Injectable()
@@ -71,6 +70,21 @@ export class AuthService {
       token: this.getJwtToken({ id: user.id })
     };
 
+  }
+
+  async checkAuthStatus(user: User){
+
+    const {email, fullName, id, password } = user
+
+    const newToken = this.getJwtToken({ id })
+
+    return {
+      id,
+      email,
+      fullName,
+      password,
+      token: newToken
+    }
   }
 
   private getJwtToken (payload: JwtPayload) {
