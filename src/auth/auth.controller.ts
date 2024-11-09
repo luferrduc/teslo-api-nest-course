@@ -1,7 +1,7 @@
 import { IncomingHttpHeaders } from 'http';
 import { Controller, Get, Post, Body, HttpCode, UseGuards, Req, Headers, SetMetadata } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 
 import { CreateUserDto, LoginUserDto } from "./dto/";
 import { AuthService } from './auth.service';
@@ -20,8 +20,8 @@ export class AuthController {
     return this.authService.create(createUserDto);
   }
 
-  @HttpCode(200)
   @Post('login')
+  @HttpCode(200)
   loginUser(@Body() loginUserDto: LoginUserDto){
     return this.authService.login(loginUserDto)
   }
@@ -36,6 +36,7 @@ export class AuthController {
   }
 
   @Get('private')
+  @ApiExcludeEndpoint()
   @UseGuards(AuthGuard())
   testingPrivateRoute(
     @Req() request: Express.Request,
@@ -57,6 +58,7 @@ export class AuthController {
 
 
   @Get('private2')
+  @ApiExcludeEndpoint()
   @SetMetadata('roles', ['admin', 'super-user']) // Añadir info extra al método o controlador
   @UseGuards(AuthGuard(), UserRoleGuard)
   privateRoute2(
@@ -70,6 +72,7 @@ export class AuthController {
   }
 
   @Get('private3')
+  @ApiExcludeEndpoint()
   // @RoleProtected(ValidRoles.admin, ValidRoles.superUser) --> Forma con el ENUM
   @UseGuards(AuthGuard(), UserRoleGuard)
   privateRoute3(
@@ -84,6 +87,7 @@ export class AuthController {
 
 
   @Get('private4')
+  @ApiExcludeEndpoint()
   // @Auth() // Para cualquiera
   // @Auth(ValidRoles.admin) --> Forma con el ENUM
   @Auth('admin', 'super-user')

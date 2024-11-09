@@ -20,6 +20,7 @@ async function bootstrap() {
   .setDescription('Teslo shop API endpoints')
   .setVersion('1.0')
   .addTag('Teslo Shop')
+  .addBearerAuth()
   .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

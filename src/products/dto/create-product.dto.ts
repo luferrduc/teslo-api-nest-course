@@ -18,7 +18,8 @@ export class CreateProductDto {
     example: 100.99,
     description: 'Product price',
     nullable: true,
-    default: 0
+    default: 0,
+    required: false
   })
   @IsNumber()
   @IsPositive()
@@ -87,8 +88,10 @@ export class CreateProductDto {
     example: ['pikachu_1929_M_men.png', 'pikachu_1309_XL_men.png'],
     description: 'List of product\'s images',
     nullable: true,
-    isArray: true,
-    default: []
+    type: 'array',
+    items: {
+      type: 'string'
+    }
   })
   @IsString({ each: true })
   @IsArray()
