@@ -1,12 +1,15 @@
 import { Response } from 'express';
 import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Get, Param, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ConfigService } from '@nestjs/config';
+import { ApiTags } from '@nestjs/swagger';
+
 import { diskStorage } from 'multer';
 import { FilesService } from './files.service';
 import { fileFilter, fileNamer } from './helpers';
-import { ConfigService } from '@nestjs/config';
 
 
+@ApiTags('Product Images')
 @Controller('files')
 export class FilesController {
   constructor(
